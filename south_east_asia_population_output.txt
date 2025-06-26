@@ -1,0 +1,16 @@
+--- Research Output ---
+Timestamp: 2025-06-26 21:31:46
+
+{
+  "topic": "South East Asia Population",
+  "summary": "Southeast Asia is home to a diverse and large population.  The exact number fluctuates, but it's in the hundreds of millions.  Population density varies significantly across the region, with highly populated areas like Java and densely populated cities contrasting with less populated regions.  Factors influencing population include birth rates, death rates, migration patterns, and urbanization.  The region faces challenges related to rapid population growth, including resource management, infrastructure development, and environmental sustainability.  Further research is needed to specify exact population numbers and demographic trends for each nation within Southeast Asia.",
+  "sources": [
+    "World Bank Data",
+    "United Nations Population Division",
+    "Various national census data from Southeast Asian countries"
+  ],
+  "tools_used": [
+    "search"
+  ]
+}
+
