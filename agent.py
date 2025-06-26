@@ -28,7 +28,7 @@ from pydantic import BaseModel
 from google import genai
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-# from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain.agents import AgentExecutor
 from utils import search_tool, wiki_tool, save_tool
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -87,58 +87,112 @@ prompt = ChatPromptTemplate.from_messages(
 
 query = input("🔍 What can I help you research? ")
 
-# Step 5: Generate response from Gemini
-formatted_prompt = prompt.format(query=query)
-response = llm.generate_content(formatted_prompt)
-raw_text = response.text
+def run_agent(query: str):
+    # Step 1: Format prompt
+    formatted_prompt = prompt.format(query=query)
+    response = llm.generate_content(formatted_prompt)
+    raw_text = response.text
 
-# Step 6: Parse into structured output
-try:
-    structured = parser.parse(raw_text)
-    print("\n📄 Structured Output:\n", structured)
-except Exception as e:
-    print("❌ Failed to parse Gemini response:", e)
-    print("Raw response:\n", raw_text)
-    exit()
+    # Step 2: Parse into structured output
+    try:
+        structured = parser.parse(raw_text)
+    except Exception as e:
+        print("❌ Failed to parse Gemini response:", e)
+        return None, None, raw_text
 
-# Normalize tools
-tool_aliases = {
-    "google search": "search",
-    "search": "search",
-    "wiki": "wiki",
-    "wikipedia": "wiki",
-    "un population division website": "search",
-    "world bank data api": "search",
-    "save": "save",
-    "save to file": "save",
-}
+    # Step 3: Normalize tool names
+    tool_aliases = {
+        "google search": "search",
+        "search": "search",
+        "wiki": "wiki",
+        "wikipedia": "wiki",
+        "un population division website": "search",
+        "world bank data api": "search",
+        "save": "save",
+        "save to file": "save",
+    }
 
-used_tools = set()
-for t in structured.tools_used:
-    t_lower = t.lower()
-    for key in tool_aliases:
-        if key in t_lower:
-            used_tools.add(tool_aliases[key])
+    used_tools = set()
+    for t in structured.tools_used:
+        t_lower = t.lower()
+        for key in tool_aliases:
+            if key in t_lower:
+                used_tools.add(tool_aliases[key])
 
-# ✅ Force save if query mentions it
-if "save" in query.lower() or "file" in query.lower() or "store" in query.lower():
-    used_tools.add("save")
+    if any(word in query.lower() for word in ["save", "file", "store"]):
+        used_tools.add("save")
 
-# Run the tools
-print("\n🛠️ Tool Usage:")
-if "search" in used_tools:
-    print("🔍 Search Tool Output:")
-    print(search_tool.func(query))
+    # Step 4: Run tools and collect outputs
+    tool_outputs = {}
 
-if "wiki" in used_tools:
-    print("📚 Wikipedia Tool Output:")
-    print(wiki_tool.run(query))
+    if "search" in used_tools:
+        tool_outputs["search"] = search_tool.func(query)
 
-if "save" in used_tools:
-    print("💾 Save Tool Output:")
-    filename = structured.topic.lower().replace(" ", "_") + "_output.txt"
-    print(save_tool.func(structured.model_dump_json(indent=2), filename=filename))
+    if "wiki" in used_tools:
+        tool_outputs["wiki"] = wiki_tool.run(query)
 
+    filename = None
+    if "save" in used_tools:
+        filename = structured.topic.lower().replace(" ", "_") + "_output.txt"
+        tool_outputs["save"] = save_tool.func(structured.model_dump_json(indent=2), filename=filename)
+
+    return structured, filename, tool_outputs
+# from this
+
+# # Step 5: Generate response from Gemini
+# formatted_prompt = prompt.format(query=query)
+# response = llm.generate_content(formatted_prompt)
+# raw_text = response.text
+
+# # Step 6: Parse into structured output
+# try:
+#     structured = parser.parse(raw_text)
+#     print("\n📄 Structured Output:\n", structured)
+# except Exception as e:
+#     print("❌ Failed to parse Gemini response:", e)
+#     print("Raw response:\n", raw_text)
+#     exit()
+
+# # Normalize tools
+# tool_aliases = {
+#     "google search": "search",
+#     "search": "search",
+#     "wiki": "wiki",
+#     "wikipedia": "wiki",
+#     "un population division website": "search",
+#     "world bank data api": "search",
+#     "save": "save",
+#     "save to file": "save",
+# }
+
+# used_tools = set()
+# for t in structured.tools_used:
+#     t_lower = t.lower()
+#     for key in tool_aliases:
+#         if key in t_lower:
+#             used_tools.add(tool_aliases[key])
+
+# # ✅ Force save if query mentions it
+# if "save" in query.lower() or "file" in query.lower() or "store" in query.lower():
+#     used_tools.add("save")
+
+# # Run the tools
+# print("\n🛠️ Tool Usage:")
+# if "search" in used_tools:
+#     print("🔍 Search Tool Output:")
+#     print(search_tool.func(query))
+
+# if "wiki" in used_tools:
+#     print("📚 Wikipedia Tool Output:")
+#     print(wiki_tool.run(query))
+
+# if "save" in used_tools:
+#     print("💾 Save Tool Output:")
+#     filename = structured.topic.lower().replace(" ", "_") + "_output.txt"
+#     print(save_tool.func(structured.model_dump_json(indent=2), filename=filename))
+
+# upto this 
+ 
 # raw_response = agent_executor.invoke({"query": query})
 # try:
 #     structured_response = parser.parse(raw_response.get("output")[0]["text"])

@@ -1,0 +1,17 @@
+--- Research Output ---
+Timestamp: 2025-06-26 23:29:04
+
+{
+  "topic": "Sharks",
+  "summary": "Sharks are a group of elasmobranch fish characterized by a cartilaginous skeleton, five to seven gill slits, and a keen sense of smell.  They are apex predators in most marine ecosystems, playing a crucial role in maintaining biodiversity.  There are over 500 species of sharks, exhibiting a wide range of sizes, shapes, and habitats. While some species are known for their aggressive behavior, many are harmless to humans.  However, certain species pose a risk due to their size and predatory nature. Shark populations are facing significant threats from overfishing, habitat loss, and bycatch.  Conservation efforts are crucial to ensure the survival of these vital marine animals.",
+  "sources": [
+    "https://www.nationalgeographic.com/animals/fish/facts/sharks",
+    "https://ocean.si.edu/ocean-life/sharks-rays",
+    "https://www.worldwildlife.org/species/shark"
+  ],
+  "tools_used": [
+    "search",
+    "wiki"
+  ]
+}
+
